@@ -1,0 +1,88 @@
+MIT License
+
+Copyright (c) 2026
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+## ⚠️ 重要声明 / IMPORTANT NOTICE
+
+**本项目基于 [zhuhai-esp/ESP32-S3-YuanDi-Board](https://github.com/zhuhai-esp/ESP32-S3-YuanDi-Board) 项目的 `YuanDi-S3-MiniMind2` 子项目（无 License）。**
+
+具体来说，下列文件**直接来自参考项目**（无 License = 版权所有，未经明确授权不得使用 / 修改 / 分发）：
+
+- `source/minimind.h` — Llama 风格 transformer 推理引擎
+- `source/tokenizer.h` — GPT-2 byte-level BPE 编码
+- `source/tokenizer_data.h` — BPE 词表 + merge rank（自动生成）
+- `source/vocab.h` — BPE 词条文本与反查表
+- `source/llm.h` — 备用 LLM 推理（本项目未使用，但保留作参考）
+
+**这些文件以"原样"包含在本仓库中**：
+
+1. **仅供学习研究使用** — 不得用于任何商业目的
+2. **不得声称这些代码是本项目原创** — 必须保留原作者署名 (zhuhai-esp / 机器知芯)
+3. **如需使用 / 修改 / 再分发这些文件，请先联系原作者获得授权**
+   - GitHub: https://github.com/zhuhai-esp/ESP32-S3-YuanDi-Board
+   - B 站: 机器知芯频道
+
+下列文件**由本项目原创**（MIT 许可范围适用）：
+
+- `source/YuanDiArduino.ino` — 主入口（基于参考项目 main.cpp 大量改写）
+- `source/web_chat.cpp` — Web 服务器 + SSE + UI（几乎全部原创）
+- `source/web_chat.h`
+- `source/partitions.csv` — 自定义 partition 布局
+- `source/rtc_wdt.h` — WDT 辅助
+- `source/_build_web.bat`
+- `scripts/*` — 全部脚本（原创）
+- `docs/*` — 全部文档（原创）
+- `firmware/web-chat/app.bin` — 编译自本项目修改后的代码
+
+---
+
+## 第三方组件致谢
+
+1. **MiniMind 模型权重** by jingyaogong
+   - 仓库: https://github.com/jingyaogong/minimind
+   - 许可: **Apache License 2.0**（允许分发，包含在 `firmware/*/model.bin`）
+   - 包含在: `firmware/baseline-serial-chat/model.bin` (13.1 MB) + `firmware/web-chat/model.bin` (15 MB with padding)
+
+2. **推理引擎 + BPE tokenizer 源码** by zhuhai-esp / 机器知芯
+   - 仓库: https://github.com/zhuhai-esp/ESP32-S3-YuanDi-Board
+   - 许可: **无 License**（默认版权所有）
+   - 包含在: `source/minimind.h`, `source/tokenizer.h`, `source/tokenizer_data.h`, `source/vocab.h`, `source/llm.h`
+   - 使用条件: **仅供学习，不得商用 / 二次分发**
+
+3. **ESP-IDF / Arduino-ESP32 工具链** (Apache 2.0)
+   - https://github.com/espressif/arduino-esp32
+
+4. **GPT-2 byte-level BPE tokenizer 词表**
+   - 来源: GPT-2 (OpenAI), 通过 HuggingFace tokenizers 生成
+   - 许可: MIT (OpenAI 公开)
+   - 包含在: `source/tokenizer_data.h`, `source/vocab.h`
+
+---
+
+## 关于本 LICENSE 的说明
+
+**本项目采用双重许可策略**：
+- **本项目原创部分**（见上）采用 **MIT License**，可自由使用 / 修改 / 分发
+- **参考项目衍生的部分**（5 个 .h 文件）**沿用参考项目的"无 License"状态**
+
+如果您打算**整体二次分发本项目**（包括衍生 .h 文件），请先联系原作者获得授权；如仅使用本项目原创部分（web_chat.cpp 等 + model.bin），按 MIT 处理。
