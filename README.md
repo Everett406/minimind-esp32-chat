@@ -60,10 +60,10 @@
 | MCU | ESP32-S3-WROOM-1（Xtensa LX7 双核 240 MHz） |
 | Flash | 16 MB |
 | PSRAM | 8 MB（OPI） |
-| 开发板 | 元旦 ESP32-S3 N16R8（[zhuhai-esp/ESP32-S3-YuanDi-Board](https://github.com/zhuhai-esp/ESP32-S3-YuanDi-Board)） |
+| 开发板 | YuanDi ESP32-S3 N16R8（[zhuhai-esp/ESP32-S3-YuanDi-Board](https://github.com/zhuhai-esp/ESP32-S3-YuanDi-Board)） |
 | 连接 | USB-C（CH343 UART，Arduino 自动 reset） |
 
-> 其他 N16R8 规格的 ESP32-S3 开发板理论上也可以运行，但引脚和按键布局以元旦板为准。
+> 其他 N16R8 规格的 ESP32-S3 开发板理论上也可以运行，但引脚和按键布局以 YuanDi 板为准。
 
 ## 🚀 快速开始
 
@@ -226,5 +226,5 @@ minimind-esp32-chat/
 
 - [jingyaogong/minimind](https://github.com/jingyaogong/minimind) — 模型 + 训练代码
 - [zhuhai-esp/ESP32-S3-YuanDi-Board](https://github.com/zhuhai-esp/ESP32-S3-YuanDi-Board) — 板子适配、串口基线
-- B 站"机器知芯"频道 — 元旦板教程
+- B 站"机器知芯"频道 — YuanDi 板教程
 - ESP-IDF / Arduino-ESP32 团队 — 工具链

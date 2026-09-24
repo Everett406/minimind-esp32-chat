@@ -18,10 +18,10 @@
 - **许可**: Apache 2.0 (允许分发)
 - **用于本项目**: `firmware/*/model.bin`（训练好的 26M int4 量化权重）
 
-## 元旦 ESP32-S3 N16R8 参考项目（无 License）
+## YuanDi ESP32-S3 N16R8 参考项目（无 License）
 
 - **GitHub**: https://github.com/zhuhai-esp/ESP32-S3-YuanDi-Board
-- **类型**: 元旦板 (B 站"机器知芯") 适配 ESP32-S3 教学项目合集
+- **类型**: YuanDi 板 (B 站"机器知芯") 适配 ESP32-S3 教学项目合集
 - **本项目 (Web Chat) 基于**: `YuanDi-S3-MiniMind2` 子项目
 - **许可**: ⚠️ **无 LICENSE 文件**（GitHub 默认 = 版权所有）
 - **直接复用其代码**:
@@ -41,7 +41,7 @@
 ## B 站教程
 
 - 频道: "机器知芯"
-- 关键词: ESP32-S3 N16R8 跑大模型 / 元旦开发板
+- 关键词: ESP32-S3 N16R8 跑大模型 / YuanDi 开发板
 - 视频中讲解了串口 chat 版的搭建，本项目是其 Web 化扩展
 
 ## ESP-IDF / Arduino-ESP32
