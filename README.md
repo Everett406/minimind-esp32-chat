@@ -1,182 +1,230 @@
+<div align="center">
+
 # MiniMind-ESP32 Chat
 
-> 在 ESP32-S3 N16R8 开发板上跑 26M 参数中文 chat 模型（MiniMind2-Small int4 量化），支持串口聊天 + AP 热点 + 手机浏览器流式对话 + 分词器 / 系统监控。
+**在 ESP32-S3 上运行 26M 参数中文大模型，开箱即烧，手机浏览器直接对话**
 
-![status](https://img.shields.io/badge/status-working-brightgreen) ![platform](https://img.shields.io/badge/ESP32--S3-N16R8-blue) ![model](https://img.shields.io/badge/MiniMind2--Small-26M-orange)
+[![release](https://img.shields.io/github/v/release/Everett406/minimind-esp32-chat?include_prereleases)](https://github.com/Everett406/minimind-esp32-chat/releases)
+[![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![platform](https://img.shields.io/badge/platform-ESP32--S3-blue)](#-硬件要求)
+[![model](https://img.shields.io/badge/model-MiniMind2--Small%2026M%20int4-orange)](#-模型)
 
-## ⚠️ 重要声明 / IMPORTANT
+*串口聊天 · AP 热点 · Web 流式对话 · 分词器预览 · 系统监控*
 
-**本项目基于 [zhuhai-esp/ESP32-S3-YuanDi-Board](https://github.com/zhuhai-esp/ESP32-S3-YuanDi-Board)（B 站"机器知芯"频道）的 `YuanDi-S3-MiniMind2` 子项目。**
+</div>
 
-参考项目**没有 LICENSE 文件**，所以本项目采用**双重许可策略**：
+---
 
-| 文件 | 来源 | 许可 |
-|---|---|---|
-| 本项目原创（`web_chat.cpp` / `YuanDiArduino.ino` / `scripts/` / `docs/`）| 本项目 | ✅ **MIT** — 自由使用 / 修改 / 分发 |
-| 模型权重 (`firmware/*/model.bin`) | [jingyaogong/MiniMind](https://github.com/jingyaogong/minimind) | ✅ **Apache 2.0** — 自由使用 / 分发 |
-| 推理引擎 + BPE 源码 (`source/minimind.h` / `tokenizer.h` / `tokenizer_data.h` / `vocab.h` / `llm.h`) | **zhuhai-esp**（无 License）| ⚠️ **仅供学习** — 商用 / 再分发需先联系原作者 |
+## 📖 目录
 
-**详细许可声明见 [LICENSE](LICENSE)。**
+- [简介](#-简介)
+- [特性](#-特性)
+- [硬件要求](#-硬件要求)
+- [快速开始](#-快速开始)
+- [从源码编译](#-从源码编译)
+- [目录结构](#-目录结构)
+- [模型](#-模型)
+- [推理原理](#-推理原理)
+- [常见问题](#-常见问题)
+- [许可证与致谢](#-许可证与致谢)
 
-简单说：
-- **想用本项目的 web UI / 烧录脚本 / 文档** → 随意用，MIT
-- **想改推理引擎 / BPE 分词器代码** → **先联系原作者**：B 站私信"机器知芯"或 GitHub issue
-- **想做商用产品** → 还需要原作者的书面授权
+## 📌 简介
+
+本项目将 [MiniMind2-Small](https://github.com/jingyaogong/minimind)（26M 参数中文对话模型）经过 4-bit 量化后部署到 ESP32-S3 开发板上，提供两种使用方式：
+
+- **串口版** — 上电即用，USB 串口直接对话，零网络依赖
+- **Web 版** — 板子开启 WiFi 热点，手机 / 电脑浏览器访问 `192.168.4.1`，流式输出对话
+
+无需云服务、无需联网，所有推理全部在板端完成。
 
 ## ✨ 特性
 
-- **轻量推理引擎** — 纯 C 实现的 Llama 风格 transformer，无第三方框架，0 依赖
-- **4-bit 量化** — int4 group-quantized + fp16 scales，13.1 MB 模型塞进 16MB flash
-- **双模式 UI**：
-  - **串口版（基线）** — 启动后串口直接对话，0 网络依赖
-  - **Web 版** — 板子开 AP（`YuanDi-S3-MiniMind`），手机连上开 `192.168.4.1` 浏览器流式聊天
-- **附加功能**：
-  - 内置 GPT-2 BPE **分词器**预览（按 token 高亮 + ID 显示）
-  - **CPU/温度/内存** 实时监控（ESP32-S3 内置温度传感器）
-  - **System prompt** 可自定义（留空 = 无 system 段）
-  - Markdown 渲染、Token/ctx/速度状态条
-  - 日志查看器（ring buffer 200 行）
-  - 串口/暗色双主题
+**推理引擎**
 
-## 🛠 硬件
+- 纯 C 实现的 Llama 风格 Transformer（RMSNorm + SwiGLU + RoPE + GQA），无第三方框架
+- 4-bit group 量化（group=64）+ fp16 scale，模型仅 13.1 MB，塞进 16 MB Flash
+- KV cache 位于 PSRAM，scratch 位于内部 SRAM，生成速度 0.4–0.8 tok/s
+
+**Web UI**
+
+- SSE 流式输出，Markdown 渲染
+- 内置 GPT-2 BPE 分词器预览（按 token 高亮 + 显示 token ID）
+- CPU / 温度 / 内存实时监控（ESP32-S3 内置温度传感器）
+- System prompt 自定义、Token / 上下文 / 速度状态条
+- 日志查看器（ring buffer 200 行）、暗色 / 串口双主题
+
+## 🛠 硬件要求
 
 | 部件 | 规格 |
 |---|---|
-| MCU | ESP32-S3-WROOM-1 (Xtensa LX7 双核 240MHz) |
+| MCU | ESP32-S3-WROOM-1（Xtensa LX7 双核 240 MHz） |
 | Flash | 16 MB |
-| PSRAM | 8 MB (OPI) |
-| 开发板 | 元旦 ESP32-S3 N16R8 (zhuhai-esp/ESP32-S3-YuanDi-Board) |
-| USB | CH343 UART (Arduino 自动 reset) |
+| PSRAM | 8 MB（OPI） |
+| 开发板 | 元旦 ESP32-S3 N16R8（[zhuhai-esp/ESP32-S3-YuanDi-Board](https://github.com/zhuhai-esp/ESP32-S3-YuanDi-Board)） |
+| 连接 | USB-C（CH343 UART，Arduino 自动 reset） |
 
-## 🚀 5 分钟上手
+> 其他 N16R8 规格的 ESP32-S3 开发板理论上也可以运行，但引脚和按键布局以元旦板为准。
 
-### 1. 硬件连接
+## 🚀 快速开始
 
-- USB-C 接开发板
-- 默认无密码（已配置） AP `YuanDi-S3-MiniMind` 启动后即可
+### 方式 A：烧录预编译固件（推荐）
 
-### 2. 烧录固件（任选一种）
-
-#### 方式 A：一键烧预编译固件（推荐新手）
+1. 从 [Releases](https://github.com/Everett406/minimind-esp32-chat/releases) 下载固件包并解压：
+   - `minimind-esp32-chat-web-chat-firmware.zip` — Web 版
+   - `minimind-esp32-chat-serial-chat-firmware.zip` — 串口版
+2. 用 esptool 一条命令烧录（替换 `COM4` 为你的端口）：
 
 ```bash
-# 解压 release 包后:
+esptool.py --chip esp32s3 --port COM4 --baud 921600 \
+  write_flash 0x0 bootloader.bin 0x8000 partitions.bin 0x10000 app.bin 0x410000 model.bin
+```
+
+3. 烧录完成后**断电重启**（拔掉 USB 等 2 秒再插）。
+
+或者，克隆本仓库后使用一键脚本：
+
+```bash
+git clone https://github.com/Everett406/minimind-esp32-chat.git
 cd minimind-esp32-chat/scripts
-# Windows PowerShell:
+
+# Windows PowerShell
 .\burn-web-chat.ps1 -Port COM4
-# Linux/macOS:
+
+# Linux / macOS
 ./burn-web-chat.sh /dev/ttyUSB0
 ```
 
-#### 方式 B：从源码编译 + 烧录
+### 方式 B：使用
+
+- **串口版** — 打开 Arduino Serial Monitor / PuTTY（115200 baud），回车开始对话
+- **Web 版** — 连接 WiFi `YuanDi-S3-MiniMind`（无密码），浏览器打开 `http://192.168.4.1`（注意是 HTTP 不是 HTTPS）
+
+> 更详细的烧录步骤、备份 / 回退方法见 [`docs/flash-and-backup.md`](docs/flash-and-backup.md)
+
+## 🔨 从源码编译
 
 ```bash
+git clone https://github.com/Everett406/minimind-esp32-chat.git
 cd minimind-esp32-chat/source
-# 编译
+
 arduino-cli compile --fqbn 'esp32:esp32:esp32s3:UploadSpeed=921600,USBMode=default,CDCOnBoot=default,UploadMode=default,CPUFreq=240,FlashMode=dio,FlashSize=16M,PartitionScheme=custom,PSRAM=opi,DebugLevel=none'
-# 烧录（见 scripts/ 里的 build + burn 流程）
 ```
 
-> 详细烧录步骤、常见问题、回退方法见 [`docs/flash-and-backup.md`](docs/flash-and-backup.md)
-
-### 3. 使用
-
-- **串口**：打开 Arduino Serial Monitor / PuTTY (115200 baud)，回车开始对话
-- **Web**：连上 WiFi `YuanDi-S3-MiniMind` (无密码) → 浏览器开 `http://192.168.4.1`
+编译完成后参考 [`scripts/build.sh`](scripts/build.sh) 与 [`scripts/burn-web-chat.sh`](scripts/burn-web-chat.sh) 完成烧录。架构设计与代码导读见 [`docs/architecture.md`](docs/architecture.md)。
 
 ## 📂 目录结构
 
 ```
 minimind-esp32-chat/
-├── README.md                           ← 你正在看
-├── CHANGELOG.md
-├── LICENSE
-├── docs/
-│   ├── quickstart.md                   ← 快速上手
-│   ├── architecture.md                 ← 代码架构 + 推理流程
-│   ├── web-ui.md                       ← Web UI 详细说明
-│   └── flash-and-backup.md             ← 烧录 + 回退 + 故障排查
-├── firmware/                            ← 预编译固件 (开箱即用)
-│   ├── baseline-serial-chat/          ← 1.04 MB 串口版 (最小)
-│   │   ├── bootloader.bin
-│   │   ├── partitions.bin
-│   │   ├── app.bin
-│   │   ├── model.bin
-│   │   └── README.md
-│   └── web-chat/                       ← 1.14 MB Web 版 (最新)
-│       ├── bootloader.bin
-│       ├── partitions.bin
-│       ├── app.bin
-│       ├── model.bin
-│       └── README.md
-├── source/                              ← 完整源码 (从 .ino 到 header)
-│   ├── YuanDiArduino.ino               ← 主入口 (setup/loop)
-│   ├── web_chat.cpp / web_chat.h       ← Web 服务器 + SSE + UI
-│   ├── minimind.h                      ← 推理引擎 (单 header, 8KB)
+├── README.md                        ← 你正在看的文件
+├── CHANGELOG.md                     ← 版本变更记录
+├── LICENSE                          ← 许可证（含双重许可声明）
+├── docs/                            ← 文档
+│   ├── quickstart.md                ← 快速上手
+│   ├── architecture.md              ← 代码架构 + 推理流程
+│   ├── web-ui.md                    ← Web UI 详细说明
+│   └── flash-and-backup.md          ← 烧录 + 回退 + 故障排查
+├── firmware/                        ← 预编译固件（开箱即用）
+│   ├── baseline-serial-chat/        ← 串口版
+│   └── web-chat/                    ← Web 版
+│       （每个目录含 bootloader / partitions / app / model 四个 bin + 说明）
+├── source/                          ← 完整源码
+│   ├── YuanDiArduino.ino            ← 主入口（setup / loop）
+│   ├── web_chat.cpp / web_chat.h    ← Web 服务器 + SSE + UI
+│   ├── minimind.h                   ← 推理引擎（单 header）
 │   ├── tokenizer.h / tokenizer_data.h ← GPT-2 BPE 分词器
-│   ├── vocab.h                         ← BPE 词表 + merge rank
-│   ├── llm.h                           ← 备用 LLM 推理
-│   ├── partitions.csv                  ← 自定义 partition (factory 1.3MB + model 14.6MB)
-│   └── _build_web.bat                  ← arduino-cli 编译脚本
-├── scripts/                             ← 一键工具
-│   ├── build.sh / build.ps1            ← 编译
-│   ├── burn-web-chat.sh / .ps1         ← 烧 Web 版 (3 段)
-│   ├── burn-baseline.sh / .ps1         ← 烧基线版
-│   ├── backup-board.sh / .ps1         ← 备份当前 flash → 本地
-│   └── restore-firmware.sh / .ps1     ← 还原到指定 backup
-└── reference/                           ← 参考资料
-    ├── original-readme.md              ← 原始 zhuhai-esp 项目说明
-    └── minimind-link.md                ← 原始 MiniMind 项目链接
+│   ├── vocab.h                      ← BPE 词表 + merge rank
+│   ├── llm.h                        ← 备用 LLM 推理
+│   ├── partitions.csv               ← 自定义分区表
+│   └── _build_web.bat               ← arduino-cli 编译脚本
+├── scripts/                         ← 一键工具（PowerShell / Bash 成对提供）
+│   ├── build.sh / .ps1              ← 编译
+│   ├── burn-web-chat.sh / .ps1      ← 烧录 Web 版
+│   ├── burn-baseline.sh / .ps1      ← 烧录串口基线版
+│   ├── backup-board.sh / .ps1       ← 备份当前 Flash
+│   └── restore-firmware.sh / .ps1   ← 还原备份
+└── reference/                       ← 参考资料
+    └── minimind-link.md             ← 原始 MiniMind 项目链接
 ```
 
 ## 🧠 模型
 
-- **架构**：MiniMind2-Small (Llama 风格, RMSNorm + SwiGLU + RoPE + GQA)
-- **参数量**：26M
-- **量化**：4-bit group (group=64) + fp16 scale
-- **词表**：6,400 (GPT-2 byte-level BPE, 中文友好)
-- **序列长度**：256
-- **生成速度**：0.4-0.8 tok/s (240MHz 双核 + 4-bit 矩阵乘优化)
-- **原始模型**：[MiniMind by jingyaogong](https://github.com/jingyaogong/minimind) (PyTorch)
-- **转换工具**：`tools/convert_minimind.py` (在原参考项目中)
+| 项目 | 说明 |
+|---|---|
+| 架构 | MiniMind2-Small（Llama 风格：RMSNorm + SwiGLU + RoPE + GQA） |
+| 参数量 | 26M |
+| 量化 | 4-bit group（group=64）+ fp16 scale |
+| 词表 | 6,400（GPT-2 byte-level BPE，中文友好） |
+| 序列长度 | 256 |
+| 生成速度 | 0.4–0.8 tok/s（240 MHz 双核 + 4-bit 矩阵乘优化） |
+| 原始模型 | [MiniMind by jingyaogong](https://github.com/jingyaogong/minimind)（PyTorch） |
 
-## 🔬 推理原理（高级）
+## 🔬 推理原理
 
 ```
 [用户输入] → BPE 分词 → [token ids]
-         → Embedding lookup (PSRAM 4-bit codes, dequant fp16→fp32)
-         → 8 层 Transformer (KV cache 在 PSRAM, scratch 在内部 SRAM)
-         → tied output head (复用 embedding)
+         → Embedding lookup（PSRAM 4-bit codes，dequant fp16 → fp32）
+         → 8 层 Transformer（KV cache 在 PSRAM，scratch 在内部 SRAM）
+         → tied output head（复用 embedding）
          → top-k=40 + temp=0.8 采样
          → 反 tokenize → [文本] → 流式 SSE 输出
 ```
 
-详细架构 + 关键代码注释见 [`docs/architecture.md`](docs/architecture.md)
+详细架构与关键代码注释见 [`docs/architecture.md`](docs/architecture.md)。
 
 ## ❓ 常见问题
 
-**Q: 烧完没看到 AP？**
-A: 烧完必须**断电重启**（拔 USB 等 2 秒再插），CH343 的 DTR 复位可能不可靠。
+<details>
+<summary><b>烧完没看到 AP？</b></summary>
 
-**Q: Web 界面打不开？**
-A: 先连 WiFi `YuanDi-S3-MiniMind`（**无密码**），再开 `http://192.168.4.1`。**注意是 HTTP 不是 HTTPS**。
+烧完必须**断电重启**（拔 USB 等 2 秒再插），CH343 的 DTR 复位可能不可靠。
+</details>
 
-**Q: 中文乱码？**
-A: 浏览器开 `http://192.168.4.1` 即可，HTML 内嵌 UTF-8。不要用 GBK 串口工具。
+<details>
+<summary><b>Web 界面打不开？</b></summary>
 
-**Q: 模型加载失败 `[ps FAIL] requested=4GB`？**
-A: 大概率是 model.bin 没烧完整。用 `esptool read_flash 0x150000 16 model-head.bin` 对比源文件，group 字段应该是 0x40。
+先连 WiFi `YuanDi-S3-MiniMind`（**无密码**），再打开 `http://192.168.4.1`。**注意是 HTTP 不是 HTTPS**。
+</details>
 
-**Q: 想回退到旧版本？**
-A: `scripts/restore-firmware.sh` 选 backup 目录，或手动 esptool 写回 3 段。
+<details>
+<summary><b>中文乱码？</b></summary>
 
-## 📜 License
+浏览器打开 `http://192.168.4.1` 即可，HTML 内嵌 UTF-8。串口工具请使用 UTF-8 编码，不要用 GBK。
+</details>
 
-[MIT](LICENSE) — 商业 / 二次开发 / 闭源使用都允许。
+<details>
+<summary><b>模型加载失败 <code>[ps FAIL] requested=4GB</code>？</b></summary>
 
-## 🙏 致谢
+大概率是 model.bin 没烧完整。用 `esptool read_flash 0x150000 16 model-head.bin` 对比源文件，group 字段应该是 0x40。
+</details>
 
-- **MiniMind 原始作者**：[jingyaogong](https://github.com/jingyaogong/minimind) — 模型 + 训练代码
-- **参考项目**：[zhuhai-esp/ESP32-S3-YuanDi-Board](https://github.com/zhuhai-esp/ESP32-S3-YuanDi-Board) — 板子适配、串口基线
-- **B 站**："机器知芯" 频道 — 元旦板教程
-- **ESP-IDF / Arduino-ESP32 团队** — 工具链
+<details>
+<summary><b>想回退到旧版本？</b></summary>
+
+运行 `scripts/restore-firmware.sh` 选择 backup 目录，或手动用 esptool 写回三段固件。
+</details>
+
+## 📜 许可证与致谢
+
+本项目基于 [zhuhai-esp/ESP32-S3-YuanDi-Board](https://github.com/zhuhai-esp/ESP32-S3-YuanDi-Board)（B 站"机器知芯"频道）的 `YuanDi-S3-MiniMind2` 子项目。由于参考项目**没有 LICENSE 文件**，本项目采用**双重许可策略**：
+
+| 内容 | 来源 | 许可 |
+|---|---|---|
+| 本项目原创（`web_chat.cpp` / `YuanDiArduino.ino` / `scripts/` / `docs/`） | 本项目 | **MIT** — 自由使用 / 修改 / 分发 |
+| 模型权重（`firmware/*/model.bin`） | [jingyaogong/minimind](https://github.com/jingyaogong/minimind) | **Apache 2.0** |
+| 推理引擎 + BPE 源码（`source/minimind.h` 等） | zhuhai-esp（原项目无 License） | **仅供学习** — 商用 / 再分发需先联系原作者 |
+
+简单说：
+
+- 想用本项目的 **web UI / 烧录脚本 / 文档** → 随意用（MIT）
+- 想改 **推理引擎 / BPE 分词器代码** → 先联系原作者（B 站私信"机器知芯"或 GitHub issue）
+- 想做 **商用产品** → 还需原作者书面授权
+
+详细许可声明见 [LICENSE](LICENSE)。
+
+### 致谢
+
+- [jingyaogong/minimind](https://github.com/jingyaogong/minimind) — 模型 + 训练代码
+- [zhuhai-esp/ESP32-S3-YuanDi-Board](https://github.com/zhuhai-esp/ESP32-S3-YuanDi-Board) — 板子适配、串口基线
+- B 站"机器知芯"频道 — 元旦板教程
+- ESP-IDF / Arduino-ESP32 团队 — 工具链
