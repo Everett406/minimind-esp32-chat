@@ -1,3 +1,9 @@
+---
+
+> [!NOTE]
+> **本仓库已迁移至 Gitee**：<https://gitee.com/Everett5678/minimind-esp32-chat>
+> GitHub 端仅作只读归档，新代码请推送到 Gitee。
+
 <div align="center">
 
 # MiniMind-ESP32 Chat
