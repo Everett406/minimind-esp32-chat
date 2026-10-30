@@ -10,7 +10,7 @@
 
 **在 ESP32-S3 上运行 26M 参数中文大模型，开箱即烧，手机浏览器直接对话**
 
-[![release](https://img.shields.io/github/v/release/Everett406/minimind-esp32-chat?include_prereleases)](https://github.com/Everett406/minimind-esp32-chat/releases)
+[![release](https://img.shields.io/github/v/release/Everett406/minimind-esp32-chat?include_prereleases)](https://gitee.com/Everett5678/minimind-esp32-chat/releases)
 [![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![platform](https://img.shields.io/badge/platform-ESP32--S3-blue)](#-硬件要求)
 [![model](https://img.shields.io/badge/model-MiniMind2--Small%2026M%20int4-orange)](#-模型)
@@ -75,7 +75,7 @@
 
 ### 方式 A：烧录预编译固件（推荐）
 
-1. 从 [Releases](https://github.com/Everett406/minimind-esp32-chat/releases) 下载固件包并解压：
+1. 从 [Releases](https://gitee.com/Everett5678/minimind-esp32-chat/releases) 下载固件包并解压：
    - `minimind-esp32-chat-web-chat-firmware.zip` — Web 版
    - `minimind-esp32-chat-serial-chat-firmware.zip` — 串口版
 2. 用 esptool 一条命令烧录（替换 `COM4` 为你的端口）：
@@ -90,7 +90,7 @@ esptool.py --chip esp32s3 --port COM4 --baud 921600 \
 或者，克隆本仓库后使用一键脚本：
 
 ```bash
-git clone https://github.com/Everett406/minimind-esp32-chat.git
+git clone https://gitee.com/Everett5678/minimind-esp32-chat.git
 cd minimind-esp32-chat/scripts
 
 # Windows PowerShell
@@ -110,7 +110,7 @@ cd minimind-esp32-chat/scripts
 ## 🔨 从源码编译
 
 ```bash
-git clone https://github.com/Everett406/minimind-esp32-chat.git
+git clone https://gitee.com/Everett5678/minimind-esp32-chat.git
 cd minimind-esp32-chat/source
 
 arduino-cli compile --fqbn 'esp32:esp32:esp32s3:UploadSpeed=921600,USBMode=default,CDCOnBoot=default,UploadMode=default,CPUFreq=240,FlashMode=dio,FlashSize=16M,PartitionScheme=custom,PSRAM=opi,DebugLevel=none'
